@@ -56,9 +56,11 @@ td,th{border:1px solid var(--bd);padding:6px 8px;text-align:left}th{background:v
     <h1 id="ti"></h1><button class="b g" id="bn">New lesson</button>
   </div>
   <div id="chips"></div>
+  <div id="lw" class="w"></div>
   <div class="card" id="st"></div>
   <details class="card"><summary>Voice settings</summary>
     <select id="vs" style="width:100%;padding:8px;margin-top:8px"></select>
+    <select id="vm" style="width:100%;padding:8px;margin-top:8px"><option value="one">Ek hi Hindi voice (default)</option><option value="switch">English words ke liye alag voice</option></select>
     <div id="vi" class="src"></div><div id="wn" class="w"></div>
   </details>
 </div>
@@ -102,7 +104,7 @@ function hiV(){return voices[parseInt($('vs').value,10)]||null}
 function enV(){var a=voices.filter(function(v){return /^en/i.test(v.lang.replace('_','-'))});
  return a.filter(function(v){return /^en-in/i.test(v.lang.replace('_','-'))})[0]||a[0]||null}
 function mk(x){var hi=hiV(),en=enV(),dev=/[\u0900-\u097F]/.test(x),lat=/[A-Za-z]/.test(x);
- if(!lat)return[{t:x,v:hi,l:'hi-IN'}];
+ if(!lat||(dev&&$('vm').value==='one'))return[{t:x,v:hi,l:'hi-IN'}];
  if(!dev)return[{t:x,v:en||hi,l:'en-IN'}];
  var o=[];x.split(/([A-Za-z][A-Za-z0-9 .,'\-]*[A-Za-z0-9]|[A-Za-z])/).forEach(function(p){p=(p||'').trim();if(!p)return;
   o.push(/^[A-Za-z]/.test(p)?{t:p,v:en||hi,l:'en-IN'}:{t:p,v:hi,l:'hi-IN'})});return o}
@@ -113,7 +115,7 @@ function build(d){if(!d||!d.sections||!d.sections.length)throw Error('sections n
  d.sections.forEach(function(s,si){S.push(F.length);(s.sentences||[]).forEach(function(x){
   if(typeof x==='string')x={show:x,say:x};F.push({s:si,show:x.show||x.say||'',say:x.say||x.show||''})})});
  if(!F.length)throw Error('sentences nahi mile')}
-function start(d){build(d);$('ld').hidden=true;$('ap').hidden=false;$('ctl').hidden=false;$('ti').textContent=L.title||'Lesson';
+function start(d){build(d);var n=F.filter(function(f){return /[A-Za-z]/.test(f.say)}).length;$('lw').textContent=n?('Dhyan: '+n+' sentences ke say text me English letters hain, isliye awaaz ajeeb ho sakti hai. AI se say ko poora Devanagari me theek karwao.'):'';$('ld').hidden=true;$('ap').hidden=false;$('ctl').hidden=false;$('ti').textContent=L.title||'Lesson';
  var c=$('chips');c.innerHTML='';L.sections.forEach(function(s,i){var b=h('button',0,i+1);b.onclick=function(){go(S[i])};c.appendChild(b)});
  $('pg').max=F.length-1;var sv=0;try{sv=parseInt(localStorage.getItem('nac:'+L.title)||'0',10)||0}catch(e){}
  go(sv<F.length?sv:0)}
@@ -164,7 +166,7 @@ $('nx').onclick=function(){var s=F[cur].s;if(s<L.sections.length-1)go(S[s+1])};
 $('pv').onclick=function(){var s=F[cur].s;if(cur>S[s])go(S[s]);else if(s>0)go(S[s-1])};
 $('sp').onclick=function(){ri=(ri+1)%rates.length;upd();if(playing)speak()};
 $('pg').oninput=function(){go(parseInt(this.value,10))};
-$('vs').onchange=function(){if(playing)speak()};
+$('vs').onchange=function(){if(playing)speak()};$('vm').onchange=function(){if(playing)speak()};
 $('bl').onclick=function(){try{start(parse($('ta').value));$('er').textContent=''}catch(e){$('er').textContent='JSON sahi nahi hai: '+e.message}};
 $('bs').onclick=function(){start(SAMPLE)};
 $('bn').onclick=function(){playing=false;stopAudio();$('ap').hidden=true;$('ctl').hidden=true;$('ld').hidden=false};
