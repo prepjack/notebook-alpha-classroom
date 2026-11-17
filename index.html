@@ -1,0 +1,1136 @@
+<!DOCTYPE html>
+<html lang="hi">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="theme-color" content="#101827">
+<title>AI Classroom | Data & DIKW</title>
+
+<style>
+:root{
+  --bg:#0b1220;
+  --panel:#111c2e;
+  --panel2:#17243a;
+  --border:#263650;
+  --text:#edf3ff;
+  --muted:#9aabc3;
+  --accent:#65a9ff;
+  --accent2:#a78bfa;
+  --green:#36c995;
+  --red:#ff747e;
+  --yellow:#f5c66b;
+  --radius:16px;
+}
+*{box-sizing:border-box}
+body{
+  margin:0;
+  background:var(--bg);
+  color:var(--text);
+  font-family:Arial,Helvetica,sans-serif;
+  line-height:1.65;
+}
+button,select{font:inherit}
+button{cursor:pointer}
+.app{max-width:1100px;margin:auto;padding:16px}
+header{
+  display:flex;justify-content:space-between;align-items:center;
+  gap:12px;flex-wrap:wrap;padding:12px 0 18px;
+  border-bottom:1px solid var(--border);
+}
+.brand{font-size:20px;font-weight:800;letter-spacing:.4px}
+.brand span{color:var(--accent)}
+.tag{
+  color:var(--green);font-size:11px;border:1px solid #24664f;
+  border-radius:30px;padding:4px 10px;
+}
+h1{font-size:clamp(25px,5vw,37px);line-height:1.25;margin:25px 0 8px}
+.subtitle{color:var(--muted);margin:0 0 22px}
+.layout{display:grid;grid-template-columns:240px minmax(0,1fr);gap:18px}
+.sidebar,.main,.player,.voice-panel,.end-screen{
+  background:var(--panel);border:1px solid var(--border);
+  border-radius:var(--radius);
+}
+.sidebar{padding:15px;height:fit-content;position:sticky;top:12px}
+.side-title{font-size:12px;color:var(--muted);font-weight:bold;margin-bottom:12px}
+.section-link{
+  display:flex;align-items:center;gap:10px;width:100%;text-align:left;
+  background:transparent;color:var(--muted);border:0;border-radius:10px;
+  padding:11px 9px;margin-bottom:4px;font-size:13px;
+}
+.section-link.active{background:#203554;color:white}
+.section-link.done{color:var(--green)}
+.section-link .num{
+  width:25px;height:25px;border-radius:8px;background:#263750;
+  display:grid;place-items:center;flex-shrink:0;font-size:12px;
+}
+.main{padding:clamp(15px,3vw,27px);min-width:0}
+.section-meta{color:var(--accent);font-size:12px;font-weight:bold}
+.section-title{font-size:clamp(22px,4vw,29px);margin:5px 0 14px}
+.script-label,.visual-label,.terms-label,.quiz-label{
+  color:var(--muted);font-size:12px;font-weight:bold;
+  letter-spacing:1px;text-transform:uppercase;margin:23px 0 10px;
+}
+.script{display:grid;gap:9px}
+.sentence{
+  padding:12px 14px;background:#142239;border:1px solid transparent;
+  border-radius:10px;font-size:15px;cursor:pointer;transition:.2s;
+}
+.sentence.active{
+  background:#1b3658;border-color:var(--accent);
+  box-shadow:0 0 0 1px #65a9ff22;
+}
+.sentence.active:before{content:"▶ ";color:var(--accent)}
+.visual{
+  background:#101c2d;border:1px solid var(--border);
+  border-radius:13px;padding:17px;overflow:hidden;
+}
+.visual svg{width:100%;height:auto;display:block;max-height:280px}
+.terms{display:flex;flex-wrap:wrap;gap:8px}
+.term{
+  padding:6px 11px;border-radius:30px;background:#203653;
+  color:#b9d8ff;font-size:12px;border:1px solid #345276;
+}
+.source{
+  margin-top:20px;padding:12px;border-left:3px solid var(--accent2);
+  background:#171d31;color:var(--muted);font-size:12px;border-radius:5px;
+}
+.question{
+  background:#142239;border:1px solid var(--border);
+  padding:16px;border-radius:13px;margin:12px 0;
+}
+.q-text{font-weight:bold;margin:0 0 13px}
+.option{
+  display:block;width:100%;text-align:left;padding:12px;
+  background:#1b2b43;color:var(--text);border:1px solid #31445e;
+  border-radius:9px;margin:8px 0;font-size:14px;
+}
+.option:hover:not(:disabled){border-color:var(--accent)}
+.option.correct{border-color:var(--green);background:#123b32}
+.option.wrong{border-color:var(--red);background:#43242c}
+.option:disabled{cursor:default;opacity:1}
+.feedback{font-size:13px;margin-top:10px;min-height:20px}
+.feedback.good{color:var(--green)}
+.feedback.bad{color:var(--red)}
+.player{
+  padding:17px;margin:18px 0;position:sticky;bottom:8px;
+  z-index:5;box-shadow:0 8px 35px #0007;
+}
+.progress-info{
+  display:flex;justify-content:space-between;gap:10px;
+  font-size:12px;color:var(--muted);margin-bottom:8px;
+}
+.progress-track{
+  height:9px;border-radius:20px;background:#293951;overflow:hidden;
+  cursor:pointer;margin-bottom:13px;
+}
+.progress-fill{height:100%;width:0;background:var(--accent);transition:width .2s}
+.controls{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.btn{
+  background:#213650;color:white;border:1px solid #354e6d;
+  padding:10px 14px;border-radius:10px;font-size:13px;
+  min-height:42px;
+}
+.btn.primary{background:var(--accent);color:#071426;border:0;font-weight:bold}
+.btn:hover{filter:brightness(1.13)}
+.btn:disabled{opacity:.35;cursor:not-allowed}
+select{
+  background:#1b2b43;color:white;border:1px solid #354e6d;
+  border-radius:9px;padding:10px;max-width:100%;min-height:42px;
+}
+.speed{margin-left:auto}
+.voice-panel{padding:16px;margin:18px 0}
+.voice-panel h3{margin:0 0 12px;font-size:16px}
+.voice-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
+.voice-stat{background:#18273d;padding:12px;border-radius:10px;min-width:0}
+.voice-stat strong{display:block;font-size:19px;color:var(--accent)}
+.voice-stat small{color:var(--muted);font-size:11px}
+.voice-select{width:100%;margin:12px 0}
+.voice-details{font-size:12px;color:var(--muted);overflow-wrap:anywhere}
+.end-screen{padding:25px;text-align:center;margin:20px 0}
+.score{font-size:55px;font-weight:800;color:var(--green)}
+.revise-list{text-align:left;background:#142239;padding:15px;border-radius:12px;margin-top:20px}
+.hidden{display:none!important}
+.navigation{
+  display:flex;justify-content:space-between;gap:10px;margin-top:22px;
+}
+.navigation button{flex:1}
+.footer{text-align:center;color:var(--muted);font-size:11px;padding:20px}
+.flow{display:flex;align-items:center;justify-content:center;gap:7px;flex-wrap:wrap}
+.flow-box{
+  background:#203653;border:1px solid #46648a;border-radius:9px;
+  padding:12px 14px;text-align:center;font-size:13px;font-weight:bold;
+}
+.flow-arrow{color:var(--accent);font-size:20px}
+.data-table{width:100%;border-collapse:collapse;font-size:13px}
+.data-table th,.data-table td{
+  padding:11px 9px;text-align:left;border-bottom:1px solid var(--border);
+}
+.data-table th{color:#91c2ff;background:#192b43}
+.data-table td{color:#e1eaff}
+.diagram-caption{text-align:center;color:var(--muted);font-size:12px;margin-top:12px}
+@media(max-width:720px){
+  .layout{grid-template-columns:1fr}
+  .sidebar{position:static}
+  .sidebar nav{display:flex;overflow-x:auto;gap:5px;padding-bottom:5px}
+  .section-link{min-width:125px;margin:0}
+  .side-title{margin-bottom:8px}
+  .voice-grid{grid-template-columns:1fr 1fr}
+  .player{position:relative;bottom:auto}
+  .speed{margin-left:0}
+}
+@media(max-width:380px){
+  .app{padding:10px}
+  .controls .btn{padding:9px 10px}
+  .sentence{font-size:14px}
+}
+</style>
+</head>
+
+<body>
+<div class="app">
+
+<header>
+  <div class="brand">◈ AI <span>CLASSROOM</span></div>
+  <div class="tag">INTERACTIVE LEARNING</div>
+</header>
+
+<h1>Data & DIKW Pyramid</h1>
+<p class="subtitle">TA_P2_U1_C1_Data · Teaching mode · Hindi + English terminology</p>
+
+<div class="layout">
+
+<aside class="sidebar">
+  <div class="side-title">LESSON CONTENT</div>
+  <nav id="sectionNav"></nav>
+</aside>
+
+<main class="main" id="lessonArea">
+  <div id="lessonContent"></div>
+</main>
+
+</div>
+
+<section class="player">
+  <div class="progress-info">
+    <span id="progressText">0 / 30 sentences completed</span>
+    <span id="progressPercent">0%</span>
+  </div>
+  <div class="progress-track" id="progressTrack" title="Tap to jump to a sentence">
+    <div class="progress-fill" id="progressFill"></div>
+  </div>
+
+  <div class="controls">
+    <button class="btn" id="prevBtn">◀ Previous</button>
+    <button class="btn primary" id="playBtn">▶ Play</button>
+    <button class="btn" id="nextBtn">Next ▶</button>
+
+    <select class="speed" id="speedSelect" aria-label="Speech speed">
+      <option value="0.75">0.75×</option>
+      <option value="1" selected>1× Speed</option>
+      <option value="1.25">1.25×</option>
+      <option value="1.5">1.5×</option>
+      <option value="2">2×</option>
+    </select>
+  </div>
+  <div class="voice-details" id="playerStatus" style="margin-top:10px">
+    Text mode ready. Press Play to begin.
+  </div>
+</section>
+
+<section class="voice-panel">
+  <h3>🎙 Voice Test & Settings</h3>
+
+  <div class="voice-grid">
+    <div class="voice-stat">
+      <strong id="supportStat">Checking</strong>
+      <small>SpeechSynthesis Support</small>
+    </div>
+    <div class="voice-stat">
+      <strong id="voiceCount">0</strong>
+      <small>Available Voices</small>
+    </div>
+    <div class="voice-stat">
+      <strong id="hiCount">0</strong>
+      <small>Hindi Voices</small>
+    </div>
+  </div>
+
+  <p class="voice-details" id="englishVoices" style="margin-top:12px">
+    English voices: checking...
+  </p>
+  <p class="voice-details" id="hindiVoices">
+    Hindi voices: checking...
+  </p>
+
+  <label for="voiceSelect" class="voice-details">Choose narration voice</label>
+  <select id="voiceSelect" class="voice-select">
+    <option value="">Automatic voice selection</option>
+  </select>
+
+  <button class="btn primary" id="testVoiceBtn">▶ Test Hindi + English</button>
+  <p class="voice-details" id="testStatus" style="margin-top:10px">
+    Voice test has not been started.
+  </p>
+</section>
+
+<section class="end-screen hidden" id="endScreen">
+  <div style="font-size:13px;color:var(--muted)">LESSON COMPLETED</div>
+  <h2>Your Learning Report</h2>
+  <div class="score" id="finalScore">0%</div>
+  <p id="scoreText"></p>
+
+  <div class="revise-list">
+    <strong>📚 Sections to revise</strong>
+    <div id="reviseList"></div>
+    <hr style="border-color:var(--border)">
+    <strong>Quick Revision Summary</strong>
+    <p id="revisionSummary" style="font-size:13px;color:var(--muted)"></p>
+  </div>
+
+  <button class="btn primary" style="margin-top:20px" onclick="restartLesson()">
+    ↻ Restart Lesson
+  </button>
+</section>
+
+<div class="footer">AI CLASSROOM · Interactive Lesson Player</div>
+
+</div>
+
+<script>
+/* ======================================
+   LESSON DATA
+   All lesson facts are derived from source.
+====================================== */
+
+const sections = [
+
+{
+ title:"DIKW Pyramid",
+ sentences:[
+  "आज हम DIKW Pyramid को समझेंगे, जो Data, Information, Knowledge और Wisdom के बीच hierarchical relationship दर्शाता है।",
+  "DIKW का पूरा क्रम Data से शुरू होकर Information और Knowledge से गुजरते हुए Wisdom तक पहुँचता है।",
+  "इस Pyramid के सबसे निचले स्तर अर्थात base पर Data स्थित होता है।",
+  "सबसे ऊपरी स्तर अर्थात top पर Wisdom होता है।",
+  "इस अवधारणा का श्रेय अक्सर Russell Ackoff को दिया जाता है, जो organizational theorist और management consultant थे।"
+ ],
+ terms:["DIKW","Data","Information","Knowledge","Wisdom"],
+ source:"DIKW Pyramid represents a hierarchical relationship among Data, Information, Knowledge and Wisdom. The concept is often attributed to Russell Ackoff. The source states that Ackoff introduced the concept in the 1980s.",
+ visual:"dikw",
+ questions:[
+  {
+   q:"DIKW Pyramid में सबसे ऊपरी स्तर कौन-सा है?",
+   options:["Data","Information","Knowledge","Wisdom"],
+   answer:3,
+   explanation:"Wisdom DIKW Pyramid के top पर स्थित है। Data इसका base है।"
+  },
+  {
+   q:"DIKW अवधारणा का श्रेय अक्सर किसे दिया जाता है?",
+   options:["Russell Ackoff","Ivan Pavlov","William James","Sigmund Freud"],
+   answer:0,
+   explanation:"Source के अनुसार DIKW अवधारणा का श्रेय अक्सर Russell Ackoff को दिया जाता है।"
+  }
+ ]
+},
+
+{
+ title:"What is Data?",
+ sentences:[
+  "Data शब्द की उत्पत्ति Latin भाषा के शब्द datum से हुई है।",
+  "Datum का अर्थ एक single factual entity अथवा single point of matter होता है।",
+  "Individual data items को अक्सर data points कहा जाता है।",
+  "Data और dataset दोनों data points के collection को दर्शा सकते हैं।",
+  "मूल रूप से data, datum का plural form है।",
+  "लेकिन modern usage में Data का प्रयोग singular और plural दोनों रूपों में किया जाता है।"
+ ],
+ terms:["Datum","Data","Data Points","Dataset","Singular / Plural"],
+ source:"Data originally comes from datum, a Latin word. Datum is a single factual entity or a single point of matter. Individual data items are often called data points. A dataset is also a collection of data points.",
+ visual:"datum",
+ questions:[
+  {
+   q:"Data शब्द की उत्पत्ति किस Latin शब्द से हुई है?",
+   options:["Datum","Datus","Dare","Datam"],
+   answer:0,
+   explanation:"Data शब्द मूलतः Latin शब्द datum से आया है।"
+  },
+  {
+   q:"Modern usage में Data का प्रयोग किस रूप में हो सकता है?",
+   options:["केवल Singular","केवल Plural","Singular और Plural दोनों","किसी भी रूप में नहीं"],
+   answer:2,
+   explanation:"Source के अनुसार modern usage में Data singular और plural दोनों हो सकता है।"
+  }
+ ]
+},
+
+{
+ title:"Characteristics and Meaning of Data",
+ sentences:[
+  "Data में reference और analysis के लिए उपयोग किए जाने वाले facts और statistics शामिल होते हैं।",
+  "Data में numbers, characters, symbols और images जैसी चीजें हो सकती हैं।",
+  "ऐसे elements को computer द्वारा process किया जा सकता है।",
+  "Data से अर्थ प्राप्त करने के लिए human या machine द्वारा interpretation आवश्यक है।",
+  "अपने raw form में Data को meaningless बताया गया है।",
+  "इसलिए Raw Data से Meaning प्राप्त करने के लिए Interpretation आवश्यक होता है।"
+ ],
+ terms:["Facts","Statistics","Raw Data","Interpretation","Meaning"],
+ source:"Facts and statistics used for reference or analysis. Numbers, characters, symbols, images, etc. that can be processed by a computer. Data must be interpreted by a human or machine to derive meaning. Therefore, data in its raw form is described as meaningless.",
+ visual:"meaning",
+ questions:[
+  {
+   q:"Raw Data से Meaning प्राप्त करने के लिए क्या आवश्यक है?",
+   options:["Storage","Interpretation","Deletion","Formatting"],
+   answer:1,
+   explanation:"Source स्पष्ट करता है कि Data को human या machine द्वारा interpret करना आवश्यक है।"
+  },
+  {
+   q:"Raw form में Data को किस प्रकार वर्णित किया गया है?",
+   options:["Meaningful","Hierarchical","Meaningless","Processed"],
+   answer:2,
+   explanation:"Source के अनुसार raw data अपने आप में meaningless होता है।"
+  }
+ ]
+},
+
+{
+ title:"Data Processing",
+ sentences:[
+  "Data Processing एक ऐसी प्रक्रिया है जिसमें Data को input के रूप में दिया जाता है।",
+  "इसके बाद Processing stage में Data पर processing की जाती है।",
+  "इस प्रक्रिया के output में Information प्राप्त होती है।",
+  "इस प्रकार Data से Information प्राप्त करने के लिए Processing का उपयोग होता है।",
+  "Source के diagram में Storage को भी Processing stage से connected दिखाया गया है।"
+ ],
+ terms:["Data","Input","Processing","Information","Storage"],
+ source:"Data Processing is represented in the source as a process in which data is given as input, processing is performed, and information is produced as output. The diagram also shows Storage connected with the processing stage.",
+ visual:"processing",
+ questions:[
+  {
+   q:"Data Processing का सही क्रम कौन-सा है?",
+   options:[
+    "Information → Data → Processing",
+    "Data → Processing → Information",
+    "Processing → Information → Data",
+    "Storage → Data → Wisdom"
+   ],
+   answer:1,
+   explanation:"Data input होता है, Processing होती है और Information output के रूप में प्राप्त होती है।"
+  },
+  {
+   q:"Source के diagram में Storage किससे connected है?",
+   options:["Data","Information","Processing","Wisdom"],
+   answer:2,
+   explanation:"Storage को Processing stage से connected दिखाया गया है।"
+  }
+ ]
+},
+
+{
+ title:"Types of Data",
+ sentences:[
+  "Source में Data के तीन प्रकार Text, Graphics और Multimedia बताए गए हैं।",
+  "Text Data में alphabets, numbers, symbols और characters शामिल होते हैं।",
+  "Graphics Data में color, image, photo, shape, picture और drawing शामिल होते हैं।",
+  "Multimedia Data में Audio और Video शामिल होते हैं।",
+  "इन तीनों प्रकारों को याद रखने के लिए T–G–M memory hook का प्रयोग किया गया है।"
+ ],
+ terms:["Text","Graphics","Multimedia","Audio","Video"],
+ source:"The source presents 3 types of data: Text, Graphics, Multimedia. Text includes alphabets, numbers, symbols and characters. Graphics includes color, image, photo, shape, picture and drawing. Multimedia includes audio and video.",
+ visual:"types",
+ questions:[
+  {
+   q:"Source में Data के कितने प्रकार प्रस्तुत किए गए हैं?",
+   options:["2","3","4","5"],
+   answer:1,
+   explanation:"तीन प्रकार हैं: Text, Graphics और Multimedia।"
+  },
+  {
+   q:"Audio और Video किस प्रकार के Data में आते हैं?",
+   options:["Text","Graphics","Multimedia","Numerical"],
+   answer:2,
+   explanation:"Multimedia Data में Audio और Video शामिल होते हैं।"
+  }
+ ]
+},
+
+{
+ title:"Numerical and Categorical Data",
+ sentences:[
+  "Data का एक अन्य classification Numerical और Categorical Data के रूप में प्रस्तुत किया गया है।",
+  "Numerical Data numbers से बना होता है, जैसे Age, Weight, Number of children और Shoe size।",
+  "Numerical Data के दो प्रकार Continuous और Discrete हैं।",
+  "Continuous Data में infinite options होते हैं, जबकि Discrete Data में finite options होते हैं।",
+  "Categorical Data words से बना होता है, जैसे Eye colour, Gender, Blood type और Ethnicity।",
+  "Categorical Data के दो प्रकार Ordinal और Nominal हैं।",
+  "Ordinal Data में hierarchy या order होता है, जबकि Nominal Data में कोई hierarchy या order नहीं होता।"
+ ],
+ terms:["Numerical","Continuous","Discrete","Categorical","Ordinal","Nominal"],
+ source:"Numerical Data is made of numbers. Continuous Data has infinite options. Discrete Data has finite options. Categorical Data is made of words. Ordinal Data has a hierarchy/order. Nominal Data has no hierarchy/order.",
+ visual:"classification",
+ questions:[
+  {
+   q:"किस प्रकार के Data में hierarchy या order मौजूद होता है?",
+   options:["Nominal","Ordinal","Discrete","Continuous"],
+   answer:1,
+   explanation:"Ordinal Data में hierarchy या order मौजूद होता है।"
+  },
+  {
+   q:"Continuous Data की मुख्य विशेषता क्या है?",
+   options:[
+    "No hierarchy",
+    "Finite options",
+    "Infinite options",
+    "Made only of words"
+   ],
+   answer:2,
+   explanation:"Source के अनुसार Continuous Data में infinite options होते हैं।"
+  }
+ ]
+}
+
+];
+
+/* ======================================
+   VISUAL DIAGRAMS
+====================================== */
+
+function visualHTML(type){
+
+ if(type==="dikw"){
+ return `
+ <div style="max-width:390px;margin:auto">
+ <div style="display:flex;flex-direction:column;align-items:center;gap:4px">
+  <div style="width:40%;background:#a78bfa;padding:10px;text-align:center;color:#111827;font-weight:bold;clip-path:polygon(50% 0,100% 100%,0 100%)">
+   <span style="display:block;padding-top:12px">WISDOM</span>
+  </div>
+  <div style="width:65%;background:#438ce0;padding:10px;text-align:center;color:white;font-weight:bold;clip-path:polygon(17% 0,83% 0,100% 100%,0 100%)">KNOWLEDGE</div>
+  <div style="width:83%;background:#259f9a;padding:10px;text-align:center;color:white;font-weight:bold;clip-path:polygon(10% 0,90% 0,100% 100%,0 100%)">INFORMATION</div>
+  <div style="width:100%;background:#db9a3c;padding:11px;text-align:center;color:#171717;font-weight:bold">DATA · BASE</div>
+ </div>
+ <p class="diagram-caption">DIKW Pyramid · Base to Top</p>
+ </div>`;
+ }
+
+ if(type==="datum"){
+ return `
+ <div class="flow">
+  <div class="flow-box">Single datum</div>
+  <div class="flow-arrow">→</div>
+  <div class="flow-box">Data Points</div>
+  <div class="flow-arrow">→</div>
+  <div class="flow-box">Collection / Dataset</div>
+ </div>
+ <p class="diagram-caption">Datum → Individual Data Points → Collection</p>
+ <table class="data-table" style="margin-top:15px">
+  <tr><th>Term</th><th>Meaning</th></tr>
+  <tr><td>Datum</td><td>Single factual entity</td></tr>
+  <tr><td>Data Points</td><td>Individual units of data</td></tr>
+  <tr><td>Dataset</td><td>Collection of data points</td></tr>
+ </table>`;
+ }
+
+ if(type==="meaning"){
+ return `
+ <div class="flow">
+  <div class="flow-box">RAW DATA</div>
+  <div class="flow-arrow">→</div>
+  <div class="flow-box">INTERPRETATION</div>
+  <div class="flow-arrow">→</div>
+  <div class="flow-box" style="background:#155c4c;border-color:#36c995">MEANING</div>
+ </div>
+ <p class="diagram-caption">Raw data → Interpretation → Meaning</p>
+ <div style="margin-top:17px;padding:13px;background:#1b2c43;border-radius:10px">
+  <div style="color:#f5c66b;font-weight:bold">KEY DISTINCTION</div>
+  <p style="font-size:13px;margin-bottom:0">Raw Data by itself does not provide derived meaning. Interpretation is required.</p>
+ </div>`;
+ }
+
+ if(type==="processing"){
+ return `
+ <div class="flow" style="flex-direction:column">
+  <div class="flow-box" style="width:70%">DATA<br><small>INPUT</small></div>
+  <div class="flow-arrow">↓</div>
+  <div class="flow-box" style="width:70%">PROCESSING</div>
+  <div class="flow-arrow">↓</div>
+  <div class="flow-box" style="width:70%;background:#155c4c">INFORMATION<br><small>OUTPUT</small></div>
+  <div style="border:1px dashed #65a9ff;border-radius:9px;padding:10px;width:70%;text-align:center;color:#91c2ff">↔ STORAGE</div>
+ </div>`;
+ }
+
+ if(type==="types"){
+ return `
+ <div style="display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:9px">
+  <div class="flow-box" style="padding:14px 5px">
+   <div style="font-size:25px">T</div>TEXT
+   <small style="display:block;color:#b5c9e4;margin-top:8px">Alphabets<br>Numbers<br>Symbols<br>Characters</small>
+  </div>
+  <div class="flow-box" style="padding:14px 5px">
+   <div style="font-size:25px">G</div>GRAPHICS
+   <small style="display:block;color:#b5c9e4;margin-top:8px">Color<br>Image<br>Photo<br>Shape<br>Drawing</small>
+  </div>
+  <div class="flow-box" style="padding:14px 5px">
+   <div style="font-size:25px">M</div>MULTIMEDIA
+   <small style="display:block;color:#b5c9e4;margin-top:8px">Audio<br>Video</small>
+  </div>
+ </div>
+ <p class="diagram-caption">Memory Hook: T – G – M</p>`;
+ }
+
+ if(type==="classification"){
+ return `
+ <div style="display:grid;gap:12px">
+  <div style="text-align:center;background:#243a58;border-radius:10px;padding:12px;font-weight:bold">DATA</div>
+  <div class="flow-arrow" style="text-align:center">↓</div>
+  <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
+   <div style="background:#183b50;border:1px solid #438ce0;padding:12px;border-radius:10px">
+    <strong style="color:#8cc5ff">NUMERICAL</strong>
+    <p style="font-size:12px">Made of numbers</p>
+    <hr style="border-color:#34516d">
+    <strong>Continuous</strong>
+    <small style="display:block">Infinite options</small>
+    <br>
+    <strong>Discrete</strong>
+    <small style="display:block">Finite options</small>
+   </div>
+   <div style="background:#392e51;border:1px solid #a78bfa;padding:12px;border-radius:10px">
+    <strong style="color:#c4b2ff">CATEGORICAL</strong>
+    <p style="font-size:12px">Made of words</p>
+    <hr style="border-color:#514269">
+    <strong>Ordinal</strong>
+    <small style="display:block">Order present</small>
+    <br>
+    <strong>Nominal</strong>
+    <small style="display:block">No order</small>
+   </div>
+  </div>
+ </div>
+ <table class="data-table" style="margin-top:15px">
+  <tr><th>Subtype</th><th>Example</th></tr>
+  <tr><td>Continuous</td><td>Age, Weight, Blood pressure</td></tr>
+  <tr><td>Discrete</td><td>Shoe size, Number of children</td></tr>
+  <tr><td>Ordinal</td><td>Pain severity, Satisfaction rating, Mood</td></tr>
+  <tr><td>Nominal</td><td>Eye colour, Breed, Blood type</td></tr>
+ </table>`;
+ }
+}
+
+/* ======================================
+   APPLICATION STATE
+====================================== */
+
+let currentSection=0;
+let currentSentence=0;
+let playing=false;
+let utteranceActive=false;
+let voices=[];
+let selectedVoice=null;
+let speechSupported=!!(window.speechSynthesis && window.SpeechSynthesisUtterance);
+let speed=1;
+let completed=new Set();
+let answers={};
+let sectionVisited=new Set();
+let activeUtterance=null;
+let playSession=0;
+
+const totalSentences=sections.reduce((n,s)=>n+s.sentences.length,0);
+const $=id=>document.getElementById(id);
+
+/* ======================================
+   RENDER SECTION
+====================================== */
+
+function renderNav(){
+ $("sectionNav").innerHTML=sections.map((s,i)=>`
+ <button class="section-link ${i===currentSection?'active':''} ${sectionVisited.has(i)?'done':''}"
+ onclick="goSection(${i})">
+ <span class="num">${sectionVisited.has(i)?'✓':i+1}</span>
+ <span>${s.title}</span>
+ </button>`).join("");
+}
+
+function renderLesson(){
+ const s=sections[currentSection];
+ sectionVisited.add(currentSection);
+
+ $("lessonContent").innerHTML=`
+ <div class="section-meta">SECTION ${currentSection+1} OF ${sections.length}</div>
+ <h2 class="section-title">${s.title}</h2>
+
+ <div class="script-label">📖 Teaching Script · Click a sentence to listen</div>
+ <div class="script">
+ ${s.sentences.map((sentence,i)=>`
+  <div class="sentence ${i===currentSentence&&playing?'active':''}"
+   id="sentence-${i}" onclick="jumpToSentence(${i})">
+   ${sentence}
+  </div>`).join("")}
+ </div>
+
+ <div class="visual-label">◈ Visual Learning</div>
+ <div class="visual">${visualHTML(s.visual)}</div>
+
+ <div class="terms-label">KEY TERMS</div>
+ <div class="terms">
+ ${s.terms.map(t=>`<span class="term">${t}</span>`).join("")}
+ </div>
+
+ <div class="quiz-label">✎ Knowledge Check</div>
+ <div id="quizArea">
+ ${s.questions.map((q,qi)=>renderQuestion(q,qi)).join("")}
+ </div>
+
+ <div class="source">
+ <strong>Source:</strong><br>${s.source}
+ </div>
+
+ <div class="navigation">
+  <button class="btn" onclick="previousSection()" ${currentSection===0?'disabled':''}>← Previous</button>
+  <button class="btn primary" onclick="nextSection()">${currentSection===sections.length-1?'Finish Lesson':'Next Section →'}</button>
+ </div>
+ `;
+
+ renderNav();
+ updateProgress();
+ updateSentenceHighlight();
+}
+
+function renderQuestion(q,qi){
+ const key=currentSection+"-"+qi;
+ const answered=answers[key]!==undefined;
+ return `
+ <div class="question">
+  <p class="q-text">${qi+1}. ${q.q}</p>
+  ${q.options.map((option,oi)=>{
+   let cls="";
+   if(answered&&oi===q.answer)cls="correct";
+   else if(answered&&answers[key]===oi)cls="wrong";
+   return `<button class="option ${cls}" ${answered?'disabled':''}
+    onclick="answerQuestion(${qi},${oi})">
+    ${String.fromCharCode(65+oi)}. ${option}
+   </button>`;
+  }).join("")}
+  <div class="feedback ${answered?(answers[key]===q.answer?'good':'bad'):''}">
+   ${answered?(answers[key]===q.answer?'✓ Correct! ':'✗ Incorrect. ')+q.explanation:''}
+  </div>
+ </div>`;
+}
+
+/* ======================================
+   QUIZ
+====================================== */
+
+function answerQuestion(qi,oi){
+ const key=currentSection+"-"+qi;
+ if(answers[key]!==undefined)return;
+ answers[key]=oi;
+ renderLesson();
+}
+
+function getScore(){
+ let correct=0,total=0;
+ sections.forEach((s,si)=>{
+  s.questions.forEach((q,qi)=>{
+   total++;
+   if(answers[si+"-"+qi]===q.answer)correct++;
+  });
+ });
+ return {correct,total};
+}
+
+/* ======================================
+   SECTION NAVIGATION
+====================================== */
+
+function goSection(index){
+ stopSpeech();
+ currentSection=Math.max(0,Math.min(index,sections.length-1));
+ currentSentence=0;
+ renderLesson();
+ $("playerStatus").textContent="Section "+(currentSection+1)+" selected.";
+}
+
+function previousSection(){
+ if(currentSection>0)goSection(currentSection-1);
+}
+
+function nextSection(){
+ if(currentSection<sections.length-1){
+  goSection(currentSection+1);
+ }else{
+  finishLesson();
+ }
+}
+
+function jumpToSentence(index){
+ stopSpeech();
+ currentSentence=index;
+ updateSentenceHighlight();
+ updateProgress();
+ $("playerStatus").textContent="Sentence "+(index+1)+" selected. Press Play to listen.";
+}
+
+/* ======================================
+   SPEECH ENGINE
+   ONE UTTERANCE PER SENTENCE
+====================================== */
+
+function getVoice(){
+ if(selectedVoice)return selectedVoice;
+ return voices.find(v=>v.lang.toLowerCase()==="hi-in")
+ ||voices.find(v=>v.lang.toLowerCase()==="en-in")
+ ||voices[0]
+ ||null;
+}
+
+function refreshVoices(){
+ if(!speechSupported)return;
+
+ voices=window.speechSynthesis.getVoices();
+
+ const hi=voices.filter(v=>v.lang.toLowerCase().startsWith("hi"));
+ const en=voices.filter(v=>v.lang.toLowerCase().startsWith("en"));
+
+ $("supportStat").textContent="Available";
+ $("voiceCount").textContent=voices.length;
+ $("hiCount").textContent=hi.length;
+
+ $("hindiVoices").textContent="Hindi voices: "+
+  (hi.map(v=>v.name+" ("+v.lang+")").join(", ")||"None found");
+
+ $("englishVoices").textContent="English voices: "+
+  (en.map(v=>v.name+" ("+v.lang+")").join(", ")||"None found");
+
+ const select=$("voiceSelect");
+ const previous=select.value;
+ select.innerHTML='<option value="">Automatic voice selection</option>';
+
+ voices.forEach((v,i)=>{
+  const option=document.createElement("option");
+  option.value=String(i);
+  option.textContent=v.name+" ("+v.lang+")";
+  select.appendChild(option);
+ });
+
+ if(previous!==""&&voices[Number(previous)])select.value=previous;
+ selectedVoice=select.value!==""?voices[Number(select.value)]:null;
+}
+
+if(speechSupported){
+ window.speechSynthesis.onvoiceschanged=refreshVoices;
+ refreshVoices();
+}else{
+ $("supportStat").textContent="Unavailable";
+ $("playerStatus").textContent="Speech is unavailable. Text slideshow mode is active.";
+ $("testStatus").textContent="This browser does not support SpeechSynthesis.";
+}
+
+$("voiceSelect").addEventListener("change",()=>{
+ selectedVoice=$("voiceSelect").value===""
+  ?null:voices[Number($("voiceSelect").value)];
+});
+
+$("speedSelect").addEventListener("change",()=>{
+ speed=Number($("speedSelect").value);
+});
+
+function speakSentence(){
+ if(!playing||!speechSupported)return;
+
+ const s=sections[currentSection];
+
+ if(currentSentence>=s.sentences.length){
+  if(currentSection<sections.length-1){
+   currentSection++;
+   currentSentence=0;
+   renderLesson();
+   speakSentence();
+  }else{
+   playing=false;
+   updatePlayButton();
+   $("playerStatus").textContent="Lesson narration completed.";
+   finishLesson();
+  }
+  return;
+ }
+
+ updateSentenceHighlight();
+ updateProgress();
+
+ const sentence=s.sentences[currentSentence];
+ const thisIndex=currentSentence;
+ const thisSection=currentSection;
+ const session=playSession;
+
+ const utterance=new SpeechSynthesisUtterance(sentence);
+ const voice=getVoice();
+
+ if(voice){
+  utterance.voice=voice;
+  utterance.lang=voice.lang;
+ }else{
+  utterance.lang="hi-IN";
+ }
+
+ utterance.rate=speed;
+ utterance.pitch=1;
+ utterance.volume=1;
+
+ activeUtterance=utterance;
+ utteranceActive=true;
+
+ $("playerStatus").textContent=
+  "Speaking · Section "+(currentSection+1)+
+  " · Sentence "+(currentSentence+1);
+
+ utterance.onend=()=>{
+  if(session!==playSession)return;
+  if(!playing)return;
+  utteranceActive=false;
+
+  completed.add(thisSection+"-"+thisIndex);
+  currentSentence=thisIndex+1;
+
+  if(currentSentence>=sections[thisSection].sentences.length){
+   currentSection=thisSection;
+   currentSentence=sections[thisSection].sentences.length;
+   updateProgress();
+   speakSentence();
+  }else{
+   updateSentenceHighlight();
+   updateProgress();
+   speakSentence();
+  }
+ };
+
+ utterance.onerror=(event)=>{
+  if(session!==playSession)return;
+  utteranceActive=false;
+  if(event.error!=="canceled"&&event.error!=="interrupted"){
+   $("playerStatus").textContent="Voice error. You can continue in text mode.";
+   playing=false;
+   updatePlayButton();
+  }
+ };
+
+ window.speechSynthesis.speak(utterance);
+}
+
+function playSpeech(){
+ if(!speechSupported){
+  $("playerStatus").textContent="Text-only mode: select a sentence to study.";
+  return;
+ }
+
+ if(currentSentence>=sections[currentSection].sentences.length){
+  if(currentSection===sections.length-1){
+   currentSection=0;
+  }else{
+   currentSection++;
+  }
+  currentSentence=0;
+  renderLesson();
+ }
+
+ playing=true;
+ updatePlayButton();
+ playSession++;
+ window.speechSynthesis.cancel();
+ speakSentence();
+}
+
+function pauseSpeech(){
+ if(speechSupported)window.speechSynthesis.cancel();
+ playing=false;
+ utteranceActive=false;
+ playSession++;
+ updatePlayButton();
+ $("playerStatus").textContent="Paused · Resume to continue from the same sentence.";
+}
+
+function stopSpeech(){
+ if(speechSupported)window.speechSynthesis.cancel();
+ playing=false;
+ utteranceActive=false;
+ playSession++;
+ updatePlayButton();
+}
+
+function updatePlayButton(){
+ $("playBtn").textContent=playing?"Ⅱ Pause":"▶ Play";
+}
+
+$("playBtn").addEventListener("click",()=>{
+ if(playing)pauseSpeech();
+ else playSpeech();
+});
+
+$("prevBtn").addEventListener("click",()=>{
+ if(currentSentence>0){
+  stopSpeech();
+  currentSentence--;
+  updateSentenceHighlight();
+  updateProgress();
+ }else if(currentSection>0){
+  goSection(currentSection-1);
+  currentSentence=sections[currentSection].sentences.length-1;
+  updateSentenceHighlight();
+  updateProgress();
+ }
+});
+
+$("nextBtn").addEventListener("click",()=>{
+ stopSpeech();
+ if(currentSentence<sections[currentSection].sentences.length-1){
+  currentSentence++;
+  updateSentenceHighlight();
+  updateProgress();
+ }else{
+  nextSection();
+ }
+});
+
+/* ======================================
+   PROGRESS TRACKER
+====================================== */
+
+function getGlobalSentenceIndex(){
+ let n=0;
+ for(let i=0;i<currentSection;i++){
+  n+=sections[i].sentences.length;
+ }
+ return n+currentSentence;
+}
+
+function updateProgress(){
+ const done=completed.size;
+ const percent=Math.round(done/totalSentences*100);
+
+ $("progressFill").style.width=percent+"%";
+ $("progressText").textContent=done+" / "+totalSentences+" sentences completed";
+ $("progressPercent").textContent=percent+"%";
+}
+
+function updateSentenceHighlight(){
+ document.querySelectorAll(".sentence").forEach(el=>{
+  el.classList.remove("active");
+ });
+
+ const el=$("sentence-"+currentSentence);
+ if(el){
+  el.classList.add("active");
+  if(playing)el.scrollIntoView({behavior:"smooth",block:"nearest"});
+ }
+ renderNav();
+}
+
+$("progressTrack").addEventListener("click",e=>{
+ const rect=$("progressTrack").getBoundingClientRect();
+ const ratio=Math.max(0,Math.min(1,(e.clientX-rect.left)/rect.width));
+ const index=Math.min(totalSentences-1,Math.floor(ratio*totalSentences));
+
+ let count=0;
+ for(let i=0;i<sections.length;i++){
+  if(index<count+sections[i].sentences.length){
+   stopSpeech();
+   currentSection=i;
+   currentSentence=index-count;
+   renderLesson();
+   $("playerStatus").textContent="Progress navigation · Sentence selected.";
+   break;
+  }
+  count+=sections[i].sentences.length;
+ }
+});
+
+/* ======================================
+   VOICE TEST
+====================================== */
+
+$("testVoiceBtn").addEventListener("click",()=>{
+ if(!speechSupported){
+  $("testStatus").textContent="SpeechSynthesis is not supported.";
+  return;
+ }
+
+ window.speechSynthesis.cancel();
+ const test=new SpeechSynthesisUtterance(
+  "आज हम Data और Information को समझेंगे। This is your Hindi and English voice test."
+ );
+ const voice=getVoice();
+ if(voice){
+  test.voice=voice;
+  test.lang=voice.lang;
+ }
+ test.rate=speed;
+ window.speechSynthesis.speak(test);
+ $("testStatus").textContent="Voice test is playing.";
+ test.onend=()=>{
+  $("testStatus").textContent="Voice test completed.";
+ };
+ test.onerror=()=>{
+  $("testStatus").textContent="Voice test failed.";
+ };
+});
+
+/* ======================================
+   FINAL REPORT
+====================================== */
+
+function finishLesson(){
+ stopSpeech();
+
+ const result=getScore();
+ const percent=Math.round(result.correct/result.total*100);
+
+ $("endScreen").classList.remove("hidden");
+ $("finalScore").textContent=percent+"%";
+ $("scoreText").textContent=
+  result.correct+" correct out of "+result.total+" questions.";
+
+ const revise=[];
+
+ sections.forEach((s,si)=>{
+  const wrong=s.questions.some((q,qi)=>
+   answers[si+"-"+qi]===undefined||answers[si+"-"+qi]!==q.answer
+  );
+
+  if(wrong)revise.push(s.title);
+ });
+
+ $("reviseList").innerHTML=revise.length
+  ?revise.map(t=>`<p>• ${t}</p>`).join("")
+  :"✓ सभी answered questions सही हैं।";
+
+ $("revisionSummary").textContent=
+  "DIKW: Data → Information → Knowledge → Wisdom. "+
+  "Data को Meaning प्राप्त करने के लिए Interpretation चाहिए। "+
+  "Data Processing: Data → Processing → Information. "+
+  "Data types: Text, Graphics, Multimedia. "+
+  "Classification: Numerical → Continuous / Discrete; "+
+  "Categorical → Ordinal / Nominal.";
+
+ $("endScreen").scrollIntoView({behavior:"smooth",block:"start"});
+}
+
+function restartLesson(){
+ stopSpeech();
+ currentSection=0;
+ currentSentence=0;
+ completed.clear();
+ answers={};
+ sectionVisited.clear();
+ $("endScreen").classList.add("hidden");
+ renderLesson();
+ updateProgress();
+ $("playerStatus").textContent="Lesson restarted. Press Play to begin.";
+ window.scrollTo({top:0,behavior:"smooth"});
+}
+
+/* ======================================
+   INITIALIZATION
+====================================== */
+
+renderLesson();
+updateProgress();
+renderNav();
+
+</script>
+</body>
+</html>
