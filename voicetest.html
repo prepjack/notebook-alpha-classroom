@@ -1,0 +1,146 @@
+<!doctype html>
+<html lang="hi">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Voice Lab</title>
+<style>
+  body{font-family:system-ui,sans-serif;margin:0 auto;padding:14px;max-width:640px;line-height:1.45;background:#fafafa;color:#111}
+  h1{font-size:20px;margin:0 0 6px}
+  label{display:block;font-weight:600;margin:12px 0 4px;font-size:14px}
+  select,textarea{width:100%;box-sizing:border-box;font-size:16px;padding:8px;border:1px solid #bbb;border-radius:8px;background:#fff}
+  textarea{min-height:92px}
+  button{font-size:16px;padding:12px 14px;margin:6px 6px 0 0;border:0;border-radius:10px;background:#1a56db;color:#fff}
+  button.stop{background:#b91c1c}
+  .row{display:flex;flex-wrap:wrap}
+  .note{font-size:13px;color:#444;margin:6px 0}
+  #info,#log{font-size:13px;color:#333;background:#eee;border-radius:8px;padding:8px;margin-top:8px;white-space:pre-wrap}
+</style>
+</head>
+<body>
+<h1>Voice Lab</h1>
+<div class="note">Pehle dono voice choose karo, phir neeche ke buttons dabao.</div>
+<div id="info">Loading voices...</div>
+
+<label for="hiV">Hindi voice</label>
+<select id="hiV"></select>
+
+<label for="enV">English voice (sirf Tarika B ke liye)</label>
+<select id="enV"></select>
+
+<label for="rate">Speed</label>
+<select id="rate">
+  <option value="0.75">0.75x</option>
+  <option value="1" selected>1x</option>
+  <option value="1.25">1.25x</option>
+  <option value="1.5">1.5x</option>
+</select>
+
+<label for="mixed">Mixed text (Hindi + English Roman)</label>
+<textarea id="mixed">आज हम Classical Conditioning को समझेंगे। Ivan Pavlov ने बताया कि Learning दो Stimuli के बीच Association बनने से होती है।</textarea>
+
+<label for="dev">Awaaz ke liye text (English terms Devanagari me)</label>
+<textarea id="dev">आज हम क्लासिकल कंडीशनिंग को समझेंगे। इवान पावलोव ने बताया कि लर्निंग दो स्टिमुलाई के बीच एसोसिएशन बनने से होती है।</textarea>
+
+<div class="row">
+  <button id="bA">A: Devanagari text, Hindi voice</button>
+  <button id="bB">B: Mixed text, voice badalte hue</button>
+  <button id="bC">C: Mixed text, sirf Hindi voice</button>
+  <button id="bS" class="stop">Stop</button>
+</div>
+<div id="log"></div>
+
+<script>
+(function () {
+  var voices = [];
+  var hiSel = document.getElementById('hiV');
+  var enSel = document.getElementById('enV');
+  var info = document.getElementById('info');
+  var logEl = document.getElementById('log');
+
+  function norm(l) { return String(l || '').replace('_', '-').toLowerCase(); }
+
+  function fillSelect(sel, preferFn) {
+    sel.innerHTML = '';
+    var pick = -1;
+    voices.forEach(function (v, i) {
+      var o = document.createElement('option');
+      o.value = i;
+      o.textContent = v.name + ' (' + v.lang + ')';
+      sel.appendChild(o);
+      if (pick < 0 && preferFn(v)) pick = i;
+    });
+    if (pick >= 0) sel.value = String(pick);
+  }
+
+  function loadVoices() {
+    if (!('speechSynthesis' in window)) {
+      info.textContent = 'Is browser me speechSynthesis nahi hai.';
+      return;
+    }
+    voices = speechSynthesis.getVoices() || [];
+    var hi = voices.filter(function (v) { return norm(v.lang).indexOf('hi') === 0; });
+    var en = voices.filter(function (v) { return norm(v.lang).indexOf('en') === 0; });
+    info.textContent = 'Voices mili: ' + voices.length + ' | Hindi: ' + hi.length + ' | English: ' + en.length;
+    fillSelect(hiSel, function (v) { return norm(v.lang).indexOf('hi') === 0; });
+    fillSelect(enSel, function (v) { return norm(v.lang) === 'en-in'; });
+    if (enSel.selectedIndex < 0 || norm(voices[enSel.value] && voices[enSel.value].lang) !== 'en-in') {
+      fillSelect(enSel, function (v) { return norm(v.lang).indexOf('en') === 0; });
+    }
+  }
+
+  if ('speechSynthesis' in window) {
+    loadVoices();
+    speechSynthesis.onvoiceschanged = loadVoices;
+    setTimeout(loadVoices, 500);
+    setTimeout(loadVoices, 1500);
+  } else {
+    info.textContent = 'Is browser me speechSynthesis nahi hai.';
+  }
+
+  function say(list) {
+    speechSynthesis.cancel();
+    var rate = parseFloat(document.getElementById('rate').value) || 1;
+    logEl.textContent = list.map(function (s, i) {
+      return (i + 1) + '. [' + (s.v ? s.v.name : 'default') + '] ' + s.t;
+    }).join('\n');
+    list.forEach(function (s) {
+      var u = new SpeechSynthesisUtterance(s.t);
+      if (s.v) { u.voice = s.v; u.lang = s.v.lang; }
+      else { u.lang = 'hi-IN'; }
+      u.rate = rate;
+      speechSynthesis.speak(u);
+    });
+  }
+
+  function hiVoice() { return voices[parseInt(hiSel.value, 10)] || null; }
+  function enVoice() { return voices[parseInt(enSel.value, 10)] || null; }
+
+  // Split text into runs: Latin runs (English words/phrases) vs everything else (Devanagari etc.)
+  function splitRuns(text) {
+    var parts = text.split(/([A-Za-z][A-Za-z0-9 .,'\-]*[A-Za-z0-9])|([A-Za-z])/);
+    var out = [];
+    parts.forEach(function (p) {
+      if (!p) return;
+      var t = p.trim();
+      if (!t) return;
+      var isLatin = /^[A-Za-z]/.test(t);
+      out.push({ t: t, v: isLatin ? enVoice() : hiVoice() });
+    });
+    return out;
+  }
+
+  document.getElementById('bA').onclick = function () {
+    say([{ t: document.getElementById('dev').value, v: hiVoice() }]);
+  };
+  document.getElementById('bB').onclick = function () {
+    say(splitRuns(document.getElementById('mixed').value));
+  };
+  document.getElementById('bC').onclick = function () {
+    say([{ t: document.getElementById('mixed').value, v: hiVoice() }]);
+  };
+  document.getElementById('bS').onclick = function () { speechSynthesis.cancel(); };
+})();
+</script>
+</body>
+</html>
