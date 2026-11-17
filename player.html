@@ -1,0 +1,174 @@
+<!doctype html>
+<html lang="hi">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Notebook Alpha Classroom</title>
+<style>
+:root{--bg:#f6f7fb;--cd:#fff;--tx:#14161a;--mu:#5a6070;--pr:#1a56db;--ok:#157f3b;--no:#b42318;--bd:#d9dde6;--hl:#fff3b0}
+@media(prefers-color-scheme:dark){:root{--bg:#101318;--cd:#1a1e26;--tx:#eceff4;--mu:#9aa3b2;--pr:#6ea0ff;--ok:#4cc27a;--no:#ff7b72;--bd:#2c3340;--hl:#4a4310}}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--tx);font:16px/1.6 system-ui,"Noto Sans Devanagari",sans-serif}
+main{max-width:720px;margin:0 auto;padding:12px 12px 170px}
+.card{background:var(--cd);border:1px solid var(--bd);border-radius:14px;padding:14px;margin:10px 0}
+h1{font-size:19px;margin:6px 0}h2{font-size:18px;margin:0 0 8px}
+textarea{width:100%;min-height:200px;font:14px monospace;padding:8px;border:1px solid var(--bd);border-radius:10px;background:var(--cd);color:var(--tx)}
+button,select{font:inherit;color:inherit}
+.b{background:var(--pr);color:#fff;border:0;border-radius:10px;padding:10px 14px;margin:6px 6px 0 0}
+.b.g{background:transparent;color:var(--pr);border:1px solid var(--pr)}
+#chips{display:flex;gap:6px;overflow-x:auto;padding:4px 0}
+#chips button{flex:none;width:36px;height:36px;border-radius:50%;border:1px solid var(--bd);background:var(--cd)}
+#chips button.on{background:var(--pr);color:#fff;border-color:var(--pr)}
+.sent{padding:6px 8px;border-radius:8px;margin:2px 0;cursor:pointer}
+.sent.on{background:var(--hl)}
+.flow{display:flex;flex-wrap:wrap;align-items:center;gap:6px;margin:8px 0}
+.flow span.s{background:var(--pr);color:#fff;border-radius:8px;padding:6px 10px}
+.tw{overflow-x:auto}table{border-collapse:collapse;width:100%}
+td,th{border:1px solid var(--bd);padding:6px 8px;text-align:left}th{background:var(--bd)}
+.t{display:inline-block;background:var(--bd);border-radius:20px;padding:2px 10px;margin:2px;font-size:13px}
+.src{font-size:13px;color:var(--mu)}
+.opt{display:block;width:100%;text-align:left;background:var(--cd);border:1px solid var(--bd);border-radius:10px;padding:9px 12px;margin:6px 0}
+.opt.ok{border-color:var(--ok);background:rgba(21,127,59,.15)}.opt.no{border-color:var(--no);background:rgba(180,35,24,.15)}
+.fb{font-size:14px;color:var(--mu)}
+#ctl{position:fixed;left:0;right:0;bottom:0;background:var(--cd);border-top:1px solid var(--bd);padding:8px 12px calc(8px + env(safe-area-inset-bottom,0px))}
+#ctl .in{max-width:720px;margin:0 auto}
+.r{display:flex;align-items:center;justify-content:center;gap:10px}
+.r button{border:1px solid var(--bd);background:var(--cd);border-radius:12px;min-width:48px;height:46px;font-size:18px}
+.r #pl{background:var(--pr);color:#fff;min-width:70px}
+#pg{width:100%}
+.w{color:var(--no);font-size:14px}
+</style>
+</head>
+<body>
+<main>
+<div id="ld">
+  <h1>Notebook Alpha Classroom</h1>
+  <div class="card">
+    <p>AI ka diya hua lesson (JSON) yahan paste karo.</p>
+    <textarea id="ta" placeholder="{ &quot;title&quot;: ..."></textarea>
+    <button class="b" id="bl">Load lesson</button>
+    <button class="b g" id="bs">Sample lesson</button>
+    <div id="er" class="w"></div>
+  </div>
+</div>
+<div id="ap" hidden>
+  <div style="display:flex;justify-content:space-between;align-items:center">
+    <h1 id="ti"></h1><button class="b g" id="bn">New lesson</button>
+  </div>
+  <div id="chips"></div>
+  <div class="card" id="st"></div>
+  <details class="card"><summary>Voice settings</summary>
+    <select id="vs" style="width:100%;padding:8px;margin-top:8px"></select>
+    <div id="vi" class="src"></div><div id="wn" class="w"></div>
+  </details>
+</div>
+</main>
+<div id="ctl" hidden><div class="in">
+  <input id="pg" type="range" min="0" value="0">
+  <div class="r"><span id="pt" class="src"></span>
+    <button id="pv">⏮</button><button id="pl">▶</button><button id="nx">⏭</button><button id="sp">1x</button>
+  </div>
+</div></div>
+<script>
+(function(){
+var $=function(i){return document.getElementById(i)};
+function h(t,c,x){var e=document.createElement(t);if(c)e.className=c;if(x!=null)e.textContent=x;return e}
+var syn=window.speechSynthesis,voices=[],L,F=[],S=[],cur=0,playing=false,tok=0,tm=0,shown=-1;
+var rates=[0.75,1,1.25,1.5,2],ri=1,score=0,total=0,done={},bad={};
+
+var SAMPLE={title:"Classical Conditioning (sample)",sections:[
+{title:"Pavlov का प्रयोग",sentences:[
+{show:"Ivan Pavlov ने कुत्तों पर प्रयोग किया।",say:"इवान पावलोव ने कुत्तों पर प्रयोग किया।"},
+{show:"Food के साथ Bell बजाई गई।",say:"फूड के साथ बेल बजाई गई।"},
+{show:"बार-बार Association बनने पर सिर्फ Bell से Salivation होने लगी।",say:"बार-बार एसोसिएशन बनने पर सिर्फ बेल से सैलिवेशन होने लगी।"}],
+terms:["Association","Salivation"],visual:{type:"flow",steps:["Food + Bell","Salivation","Only Bell","Salivation"]},
+source:"Sample text",mcq:[{q:"Classical Conditioning का प्रयोग किसने किया?",options:["Skinner","Pavlov","Piaget","Bandura"],answer:1,why:"Ivan Pavlov ने यह प्रयोग किया।"}]},
+{title:"मुख्य Terms",sentences:[
+{show:"Food एक Unconditioned Stimulus है।",say:"फूड एक अनकंडीशंड स्टिमुलस है।"},
+{show:"Bell सीखने के बाद Conditioned Stimulus बन जाती है।",say:"बेल सीखने के बाद कंडीशंड स्टिमुलस बन जाती है।"}],
+terms:["UCS","CS"],visual:{type:"table",rows:[["Term","Example"],["UCS","Food"],["CS","Bell"],["CR","Salivation to Bell"]]},
+source:"Sample text",mcq:[{q:"Learning से पहले Bell क्या थी?",options:["UCS","CS","Neutral Stimulus","CR"],answer:2,why:"Bell शुरू में Neutral थी।"}]}],
+summary:["Pavlov ने Classical Conditioning समझाई।","Food = UCS, Bell = CS।"]};
+
+function loadV(){if(!syn)return;voices=syn.getVoices()||[];var s=$('vs'),old=s.value;s.innerHTML='';
+ var hi=voices.filter(function(v){return /^hi/i.test(v.lang.replace('_','-'))});
+ (hi.length?hi:voices).forEach(function(v){var o=h('option',0,v.name+' ('+v.lang+')');o.value=voices.indexOf(v);s.appendChild(o)});
+ if(old)s.value=old;
+ $('vi').textContent='Voices: '+voices.length+' | Hindi: '+hi.length;
+ $('wn').textContent=(hi.length||!voices.length)?'':'Hindi voice nahi mili. Phone ki Text-to-speech settings me Hindi voice data install karo.'}
+if(syn){loadV();syn.onvoiceschanged=loadV;setTimeout(loadV,800)}
+else $('wn').textContent='Is browser me voice nahi hai, lesson text-only chalega.';
+function hiV(){return voices[parseInt($('vs').value,10)]||null}
+function enV(){var a=voices.filter(function(v){return /^en/i.test(v.lang.replace('_','-'))});
+ return a.filter(function(v){return /^en-in/i.test(v.lang.replace('_','-'))})[0]||a[0]||null}
+function mk(x){var hi=hiV(),en=enV(),dev=/[\u0900-\u097F]/.test(x),lat=/[A-Za-z]/.test(x);
+ if(!lat)return[{t:x,v:hi,l:'hi-IN'}];
+ if(!dev)return[{t:x,v:en||hi,l:'en-IN'}];
+ var o=[];x.split(/([A-Za-z][A-Za-z0-9 .,'\-]*[A-Za-z0-9]|[A-Za-z])/).forEach(function(p){p=(p||'').trim();if(!p)return;
+  o.push(/^[A-Za-z]/.test(p)?{t:p,v:en||hi,l:'en-IN'}:{t:p,v:hi,l:'hi-IN'})});return o}
+
+function parse(t){t=t.trim();var a=t.indexOf('{'),b=t.lastIndexOf('}');return JSON.parse(t.slice(a,b+1))}
+function build(d){if(!d||!d.sections||!d.sections.length)throw Error('sections nahi mile');
+ L=d;F=[];S=[];score=0;total=0;done={};bad={};shown=-1;
+ d.sections.forEach(function(s,si){S.push(F.length);(s.sentences||[]).forEach(function(x){
+  if(typeof x==='string')x={show:x,say:x};F.push({s:si,show:x.show||x.say||'',say:x.say||x.show||''})})});
+ if(!F.length)throw Error('sentences nahi mile')}
+function start(d){build(d);$('ld').hidden=true;$('ap').hidden=false;$('ctl').hidden=false;$('ti').textContent=L.title||'Lesson';
+ var c=$('chips');c.innerHTML='';L.sections.forEach(function(s,i){var b=h('button',0,i+1);b.onclick=function(){go(S[i])};c.appendChild(b)});
+ $('pg').max=F.length-1;var sv=0;try{sv=parseInt(localStorage.getItem('nac:'+L.title)||'0',10)||0}catch(e){}
+ go(sv<F.length?sv:0)}
+
+function visual(p,v){if(!v)return;
+ if(v.type==='flow'&&v.steps){var f=h('div','flow');v.steps.forEach(function(s,i){if(i)f.appendChild(h('span',0,'→'));f.appendChild(h('span','s',s))});p.appendChild(f)}
+ if(v.type==='table'&&v.rows){var w=h('div','tw'),t=h('table');v.rows.forEach(function(r,i){var tr=h('tr');r.forEach(function(c){tr.appendChild(h(i?'td':'th',0,c))});t.appendChild(tr)});w.appendChild(t);p.appendChild(w)}}
+function showSec(si){if(shown===si)return;shown=si;var s=L.sections[si],st=$('st');st.innerHTML='';
+ st.appendChild(h('h2',0,(si+1)+'. '+s.title));visual(st,s.visual);
+ var bx=h('div');F.forEach(function(f,g){if(f.s!==si)return;var p=h('p','sent',f.show);p.id='s'+g;p.onclick=function(){playing=true;go(g)};bx.appendChild(p)});st.appendChild(bx);
+ var tw=h('div');(s.terms||[]).forEach(function(t){tw.appendChild(h('span','t',t))});st.appendChild(tw);
+ if(s.source)st.appendChild(h('div','src','Source: '+s.source));
+ var q=h('div');q.id='qz';q.hidden=true;st.appendChild(q);
+ [].forEach.call($('chips').children,function(b,i){b.className=i===si?'on':''})}
+function go(g){cur=g;var si=F[g].s;showSec(si);$('qz').hidden=true;
+ [].forEach.call(document.querySelectorAll('.sent.on'),function(e){e.className='sent'});
+ var e=$('s'+g);if(e){e.className='sent on';e.scrollIntoView({block:'center',behavior:'smooth'})}
+ upd();try{localStorage.setItem('nac:'+L.title,String(g))}catch(x){}
+ if(playing)speak();else stopAudio()}
+function stopAudio(){tok++;clearTimeout(tm);if(syn)syn.cancel()}
+function speak(){stopAudio();var t=tok,rate=rates[ri];
+ if(!syn||!voices.length){tm=setTimeout(function(){if(t===tok&&playing)adv()},F[cur].say.length*70/rate+800);return}
+ var segs=mk(F[cur].say);
+ segs.forEach(function(s,i){var u=new SpeechSynthesisUtterance(s.t);if(s.v){u.voice=s.v;u.lang=s.v.lang}else u.lang=s.l;u.rate=rate;
+  if(i===segs.length-1)u.onend=function(){if(t===tok&&playing)adv()};
+  u.onerror=function(e){if(t===tok&&e.error&&e.error!=='canceled'&&e.error!=='interrupted'){playing=false;upd()}};
+  syn.speak(u)})}
+function adv(){var n=cur+1;if(n<F.length&&F[n].s===F[cur].s)go(n);else{playing=false;upd();secEnd(F[cur].s)}}
+function secEnd(si){var s=L.sections[si],q=$('qz');q.hidden=false;q.innerHTML='';var last=si>=L.sections.length-1;
+ (s.mcq||[]).forEach(function(m,qi){var id=si+'-'+qi,c=h('div','card'),fb=h('div','fb'),bs=[];
+  c.appendChild(h('b',0,'Quick check: '+m.q));
+  (m.options||[]).forEach(function(o,oi){var b=h('button','opt',o);bs.push(b);b.onclick=function(){if(c.dataset.d)return;c.dataset.d=1;
+   var ok=oi===m.answer;if(!done[id]){done[id]=1;total++;if(ok)score++;else bad[si]=1}
+   b.className='opt '+(ok?'ok':'no');bs[m.answer].className='opt ok';fb.textContent=(ok?'सही! ':'गलत। ')+(m.why||'')};c.appendChild(b)});
+  c.appendChild(fb);q.appendChild(c)});
+ var nb=h('button','b',last?'Finish':'Next section →');nb.onclick=function(){if(last)finish();else{playing=true;go(S[si+1])}};q.appendChild(nb);
+ q.scrollIntoView({behavior:'smooth',block:'start'})}
+function finish(){stopAudio();playing=false;upd();var st=$('st');st.innerHTML='';st.appendChild(h('h2',0,'Result: '+score+' / '+total));
+ var w=Object.keys(bad).map(function(i){return L.sections[i].title});
+ st.appendChild(h('p',0,w.length?'दोबारा देखें: '+w.join(', '):'सभी Quick checks सही!'));
+ (L.summary||[]).forEach(function(x){st.appendChild(h('p',0,'• '+x))});
+ var b=h('button','b','Restart');b.onclick=function(){score=0;total=0;done={};bad={};shown=-1;go(0)};st.appendChild(b);shown=-1}
+function upd(){$('pl').textContent=playing?'⏸':'▶';$('sp').textContent=rates[ri]+'x';$('pg').value=cur;
+ $('pt').textContent=(F[cur].s+1)+'/'+L.sections.length}
+
+$('pl').onclick=function(){if(playing){playing=false;stopAudio();upd()}else{playing=true;go(cur)}};
+$('nx').onclick=function(){var s=F[cur].s;if(s<L.sections.length-1)go(S[s+1])};
+$('pv').onclick=function(){var s=F[cur].s;if(cur>S[s])go(S[s]);else if(s>0)go(S[s-1])};
+$('sp').onclick=function(){ri=(ri+1)%rates.length;upd();if(playing)speak()};
+$('pg').oninput=function(){go(parseInt(this.value,10))};
+$('vs').onchange=function(){if(playing)speak()};
+$('bl').onclick=function(){try{start(parse($('ta').value));$('er').textContent=''}catch(e){$('er').textContent='JSON sahi nahi hai: '+e.message}};
+$('bs').onclick=function(){start(SAMPLE)};
+$('bn').onclick=function(){playing=false;stopAudio();$('ap').hidden=true;$('ctl').hidden=true;$('ld').hidden=false};
+})();
+</script>
+</body>
+</html>
